@@ -1,0 +1,6 @@
+networkx
+flake8
+coverage
+Sphinx
+requests
+httpretty
