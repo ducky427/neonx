@@ -23,13 +23,22 @@ class TestGenerateNeoData(unittest.TestCase):
 
     @httpretty.activate
     def test_get_geoff_digraph(self):
-        truth = """[{"body": {}, "to": "/node", "method": "POST", "id": 0}, {"body": {}, "to": "/node", "method": "POST", "id": 1}, {"body": {"debug": "test"}, "to": "/node", "method": "POST", "id": 2}, {"body": {"to": "{1}", "type": "LINK_TO", "data": {"debug": false}}, "to": "{0}/relationships", "method": "POST"}, {"body": {"to": "{2}", "type": "LINK_TO", "data": {}}, "to": "{0}/relationships", "method": "POST"}]"""
+        truth = [{'body': {}, 'id': 0, 'method': 'POST', 'to': '/node'},
+                 {'body': {}, 'id': 1, 'method': 'POST', 'to': '/node'},
+                 {'body': {'debug': 'test'}, 'id': 2, 'method': 'POST',
+                  'to': '/node'},
+                 {'body': {'data': {'debug': False}, 'to': '{1}',
+                  'type': 'LINK_TO'},
+                  'method': 'POST', 'to': '{0}/relationships'},
+                 {'body': {'data': {}, 'to': '{2}', 'type': 'LINK_TO'},
+                  'method': 'POST',
+                  'to': '{0}/relationships'}]
 
         graph = nx.balanced_tree(2, 1, create_using=nx.DiGraph())
         graph.node[2]['debug'] = 'test'
         graph[0][1]['debug'] = False
         result = generate_data(graph, "LINK_TO", json.JSONEncoder())
-        self.assertEqual(json.loads(result), json.loads(truth))
+        self.assertEqual(json.loads(result), truth)
 
         httpretty.register_uri(httpretty.GET,
                                "http://localhost:7474/db/data/",
@@ -45,13 +54,26 @@ class TestGenerateNeoData(unittest.TestCase):
 
     @httpretty.activate
     def test_get_geoff_graph(self):
-        truth = """[{"body": {}, "to": "/node", "method": "POST", "id": 0}, {"body": {}, "to": "/node", "method": "POST", "id": 1}, {"body": {"debug": "test"}, "to": "/node", "method": "POST", "id": 2}, {"body": {"to": "{1}", "type": "LINK_TO", "data": {"debug": false}}, "to": "{0}/relationships", "method": "POST"}, {"body": {"to": "{0}", "type": "LINK_TO", "data": {"debug": false}}, "to": "{1}/relationships", "method": "POST"}, {"body": {"to": "{2}", "type": "LINK_TO", "data": {}}, "to": "{0}/relationships", "method": "POST"}, {"body": {"to": "{0}", "type": "LINK_TO", "data": {}}, "to": "{2}/relationships", "method": "POST"}]"""
+        truth = [{'body': {}, 'id': 0, 'method': 'POST', 'to': '/node'},
+                 {'body': {}, 'id': 1, 'method': 'POST', 'to': '/node'},
+                 {'body': {'debug': 'test'}, 'id': 2, 'method': 'POST',
+                  'to': '/node'},
+                 {'body': {'data': {'debug': False}, 'to': '{1}',
+                  'type': 'LINK_TO'},
+                  'method': 'POST', 'to': '{0}/relationships'},
+                 {'body': {'data': {'debug': False}, 'to': '{0}',
+                  'type': 'LINK_TO'},
+                  'method': 'POST', 'to': '{1}/relationships'},
+                 {'body': {'data': {}, 'to': '{2}', 'type': 'LINK_TO'},
+                  'method': 'POST', 'to': '{0}/relationships'},
+                 {'body': {'data': {}, 'to': '{0}', 'type': 'LINK_TO'},
+                  'method': 'POST', 'to': '{2}/relationships'}]
 
         graph = nx.balanced_tree(2, 1)
         graph.node[2]['debug'] = 'test'
         graph[0][1]['debug'] = False
         result = generate_data(graph, "LINK_TO", json.JSONEncoder())
-        self.assertEqual(json.loads(result), json.loads(truth))
+        self.assertEqual(json.loads(result), truth)
 
         httpretty.register_uri(httpretty.GET,
                                "http://localhost:7474/db/data/",
@@ -78,7 +100,9 @@ class TestGenerateNeoData(unittest.TestCase):
                                body='Server Error', status=500,
                                content_type='text/html')
 
-        self.assertRaises(Exception, lambda: write_to_neo("http://localhost:7474/db/data/", graph, 'LINK_TO'))
+        f = lambda: write_to_neo("http://localhost:7474/db/data/",
+                                 graph, 'LINK_TO')
+        self.assertRaises(Exception, f)
 
     @httpretty.activate
     def test_failure_json(self):
@@ -90,10 +114,13 @@ class TestGenerateNeoData(unittest.TestCase):
 
         httpretty.register_uri(httpretty.POST,
                                "http://localhost:7474/db/data/batch",
-                               body='{"exception": "Error", "stacktrace": "-----"}', status=500,
+                               body='{"exception": "Error", "stacktrace": 1}',
+                               status=500,
                                content_type='application/json; charset=UTF-8')
 
-        self.assertRaises(Exception, lambda: write_to_neo("http://localhost:7474/db/data/", graph, 'LINK_TO'))
+        f = lambda: write_to_neo("http://localhost:7474/db/data/",
+                                 graph, 'LINK_TO')
+        self.assertRaises(Exception, f)
 
 if __name__ == '__main__':
     unittest.main()

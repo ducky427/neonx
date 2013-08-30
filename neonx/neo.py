@@ -7,6 +7,10 @@ import requests
 
 __all__ = ['write_to_neo']
 
+
+JSON_CONTENT_TYPE = 'application/json; charset=UTF-8'
+
+
 def get_node(node_id, properties):
     return {"method": "POST",
             "to": "/node",
@@ -82,11 +86,11 @@ def write_to_neo(server_url, graph, edge_rel_name, encoder=None):
     batch_url = all_server_urls['batch']
 
     data = generate_data(graph, edge_rel_name, encoder)
-    headers = {'content-type': 'application/json'}
+    headers = {'content-type': JSON_CONTENT_TYPE}
     result = requests.post(batch_url, data=data, headers=headers)
 
     if result.status_code != 200:
-        if result.headers.get('content-type') == 'application/json; charset=UTF-8':
+        if result.headers.get('content-type') == JSON_CONTENT_TYPE:
             result_json = result.json()
             e = Exception(result_json['exception'])
             e.args += (result_json['stacktrace'], )
