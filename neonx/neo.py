@@ -85,9 +85,14 @@ def write_to_neo(server_url, graph, edge_rel_name, encoder=None):
     headers = {'content-type': 'application/json'}
     result = requests.post(batch_url, data=data, headers=headers)
 
-    result_json = result.json()
-
     if result.status_code != 200:
-        raise Exception(result_json['exception'])
+        if result.headers.get('content-type') == 'application/json; charset=UTF-8':
+            result_json = result.json()
+            e = Exception(result_json['exception'])
+            e.args += (result_json['stacktrace'], )
+        else:
+            e = Exception("Unknown server error.")
+            e.args += (result.content, )
+        raise e
 
-    return result_json
+    return result.json()

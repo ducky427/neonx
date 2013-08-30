@@ -15,7 +15,7 @@ NetworkX to Neo4j
         :target: https://coveralls.io/r/ducky427/neonx?branch=master
 
 
-A library to convert a `NetworkX <http://networkx.github.io/>`_ graph to a `Neo4j<http://www.neo4j.org`_ graph.
+A library to convert a `NetworkX <http://networkx.github.io/>`_ graph to a `Neo4j <http://www.neo4j.org>`_ graph.
 
 
 Other information:
