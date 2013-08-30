@@ -28,4 +28,4 @@ Features
 
 * Converts a `NetworkX <http://networkx.github.io/>`_ graph to a `Geoff <http://book.py2neo.org/en/latest/geoff/>`_ compatible string.
 
-* Upload a `NetworkX <http://networkx.github.io/>`_ graph to Neo4j server using `Requests <https://pypi.python.org/pypi/requests>`_.
+* Upload a `NetworkX <http://networkx.github.io/>`_ graph to `Neo4j <http://www.neo4j.org>`_ server using `Requests <https://pypi.python.org/pypi/requests>`_. Ability to add `Labels <http://bit.ly/1fo5324>`_ to created nodes in Neo4j 2.0.

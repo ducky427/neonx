@@ -27,7 +27,13 @@ def get_relationship(from_id, to_id, rel_name, properties):
             "body": body}
 
 
-def generate_data(graph, edge_rel_name, encoder):
+def get_label(i, label):
+    return {"method": "POST",
+            "to": "{{{0}}}/labels".format(i),
+            "body": label}
+
+
+def generate_data(graph, edge_rel_name, label, encoder):
     is_digraph = isinstance(graph, nx.DiGraph)
     entities = []
     nodes = {}
@@ -35,6 +41,10 @@ def generate_data(graph, edge_rel_name, encoder):
     for i, (node_name, properties) in enumerate(graph.nodes(data=True)):
         entities.append(get_node(i, properties))
         nodes[node_name] = i
+
+    if label:
+        for i in nodes.values():
+            entities.append(get_label(i, label))
 
     for from_node, to_node, properties in graph.edges(data=True):
         edge = get_relationship(nodes[from_node], nodes[to_node],
@@ -50,7 +60,8 @@ def generate_data(graph, edge_rel_name, encoder):
     return encoder.encode(entities)
 
 
-def write_to_neo(server_url, graph, edge_rel_name, encoder=None):
+def write_to_neo(server_url, graph, edge_rel_name, label=None,
+                 encoder=None):
     """Write the `graph` as Geoff string. The edges between the nodes
     have relationship name `edge_rel_name`. The code
     below shows a simple example::
@@ -66,15 +77,22 @@ def write_to_neo(server_url, graph, edge_rel_name, encoder=None):
 
 
         # save graph to neo4j
-        results = write_to_neo("http://localhost:7474/db/data/", G, 'LINKS_TO')
+        results = write_to_neo("http://localhost:7474/db/data/", G, \
+'LINKS_TO', 'Node')
 
-    If the properties are not json encodable, please pass a custom JSON encoder
-    class. See `JSONEncoder
+    If the properties are not json encodable, please pass a custom JSON
+    encoder class. See `JSONEncoder
     <http://docs.python.org/2/library/json.html#json.JSONEncoder/>`_.
 
+    If `label` is present, this label was be associated with all the nodes
+    created. Label support were added in Neo4j 2.0. See \
+    `here <http://bit.ly/1fo5324>`_.
+
     :param server_url: Server URL for the Neo4j server.
-    :param graph: A NetworkX Graph or a DiGraph
-    :param edge_rel_name: Relationship name between the nodes
+    :param graph: A NetworkX Graph or a DiGraph.
+    :param edge_rel_name: Relationship name between the nodes.
+    :param optional label: It will add this label to the node. \
+See `here <http://bit.ly/1fo5324>`_.
     :param optional encoder: JSONEncoder object. Defaults to JSONEncoder.
     :rtype: A list of Neo4j created resources.
     """
@@ -85,7 +103,7 @@ def write_to_neo(server_url, graph, edge_rel_name, encoder=None):
     all_server_urls = requests.get(server_url).json()
     batch_url = all_server_urls['batch']
 
-    data = generate_data(graph, edge_rel_name, encoder)
+    data = generate_data(graph, edge_rel_name, label, encoder)
     headers = {'content-type': JSON_CONTENT_TYPE}
     result = requests.post(batch_url, data=data, headers=headers)
 

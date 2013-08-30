@@ -35,3 +35,8 @@ To upload the graph to neo4j server hosted on localhost::
 
 Again, it is assumed that the properties of the graph are json encodable.
 If not, please pass a custom encoder in a similar way to the example above.
+
+In Neo4j 2.0, the concept of Labels was introduced. If you wish to add a label
+to the nodes created, just call the command with the label::
+
+    results = neonx.write_to_neo("http://localhost:7474/db/data/", graph, 'LINKS_TO', 'Person')

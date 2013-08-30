@@ -27,6 +27,9 @@ class TestGenerateNeoData(unittest.TestCase):
                  {'body': {}, 'id': 1, 'method': 'POST', 'to': '/node'},
                  {'body': {'debug': 'test'}, 'id': 2, 'method': 'POST',
                   'to': '/node'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{0}/labels'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{1}/labels'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{2}/labels'},
                  {'body': {'data': {'debug': False}, 'to': '{1}',
                   'type': 'LINK_TO'},
                   'method': 'POST', 'to': '{0}/relationships'},
@@ -37,7 +40,7 @@ class TestGenerateNeoData(unittest.TestCase):
         graph = nx.balanced_tree(2, 1, create_using=nx.DiGraph())
         graph.node[2]['debug'] = 'test'
         graph[0][1]['debug'] = False
-        result = generate_data(graph, "LINK_TO", json.JSONEncoder())
+        result = generate_data(graph, "LINK_TO", "ITEM", json.JSONEncoder())
         self.assertEqual(json.loads(result), truth)
 
         httpretty.register_uri(httpretty.GET,
@@ -49,7 +52,8 @@ class TestGenerateNeoData(unittest.TestCase):
                                body='["Dummy"]')
 
         result = write_to_neo("http://localhost:7474/db/data/", graph,
-                              "LINKS_TO")
+                              "LINKS_TO", "ITEM")
+
         self.assertEqual(result, ["Dummy"])
 
     @httpretty.activate
@@ -58,6 +62,9 @@ class TestGenerateNeoData(unittest.TestCase):
                  {'body': {}, 'id': 1, 'method': 'POST', 'to': '/node'},
                  {'body': {'debug': 'test'}, 'id': 2, 'method': 'POST',
                   'to': '/node'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{0}/labels'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{1}/labels'},
+                 {'body': "ITEM", 'method': 'POST', 'to': '{2}/labels'},
                  {'body': {'data': {'debug': False}, 'to': '{1}',
                   'type': 'LINK_TO'},
                   'method': 'POST', 'to': '{0}/relationships'},
@@ -72,7 +79,7 @@ class TestGenerateNeoData(unittest.TestCase):
         graph = nx.balanced_tree(2, 1)
         graph.node[2]['debug'] = 'test'
         graph[0][1]['debug'] = False
-        result = generate_data(graph, "LINK_TO", json.JSONEncoder())
+        result = generate_data(graph, "LINK_TO", "ITEM", json.JSONEncoder())
         self.assertEqual(json.loads(result), truth)
 
         httpretty.register_uri(httpretty.GET,
@@ -84,7 +91,7 @@ class TestGenerateNeoData(unittest.TestCase):
                                body='["Dummy"]')
 
         result = write_to_neo("http://localhost:7474/db/data/", graph,
-                              "LINKS_TO")
+                              "LINKS_TO", "ITEM")
         self.assertEqual(result, ["Dummy"])
 
     @httpretty.activate
@@ -101,7 +108,7 @@ class TestGenerateNeoData(unittest.TestCase):
                                content_type='text/html')
 
         f = lambda: write_to_neo("http://localhost:7474/db/data/",
-                                 graph, 'LINK_TO')
+                                 graph, 'LINK_TO', "ITEM")
         self.assertRaises(Exception, f)
 
     @httpretty.activate

@@ -3,6 +3,12 @@
 History
 -------
 
+0.2.0 (Unreleased)
+++++++++++++++++++
+
+* Added the ability to add a label to the Neo4j nodes created.
+
+
 0.1.1 (2013-08-30)
 ++++++++++++++++++
 
