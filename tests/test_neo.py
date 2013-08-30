@@ -65,6 +65,35 @@ class TestGenerateNeoData(unittest.TestCase):
                               "LINKS_TO")
         self.assertEqual(result, ["Dummy"])
 
+    @httpretty.activate
+    def test_failure_500(self):
+        graph = nx.balanced_tree(2, 1)
+
+        httpretty.register_uri(httpretty.GET,
+                               "http://localhost:7474/db/data/",
+                               body=BATCH_URL)
+
+        httpretty.register_uri(httpretty.POST,
+                               "http://localhost:7474/db/data/batch",
+                               body='Server Error', status=500,
+                               content_type='text/html')
+
+        self.assertRaises(Exception, lambda: write_to_neo("http://localhost:7474/db/data/", graph, 'LINK_TO'))
+
+    @httpretty.activate
+    def test_failure_json(self):
+        graph = nx.balanced_tree(2, 1)
+
+        httpretty.register_uri(httpretty.GET,
+                               "http://localhost:7474/db/data/",
+                               body=BATCH_URL)
+
+        httpretty.register_uri(httpretty.POST,
+                               "http://localhost:7474/db/data/batch",
+                               body='{"exception": "Error", "stacktrace": "-----"}', status=500,
+                               content_type='application/json; charset=UTF-8')
+
+        self.assertRaises(Exception, lambda: write_to_neo("http://localhost:7474/db/data/", graph, 'LINK_TO'))
 
 if __name__ == '__main__':
     unittest.main()
