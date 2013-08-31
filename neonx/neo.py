@@ -152,10 +152,7 @@ def get_neo_graph(server_url, label):
 
     for n in node_data['body']:
         node_id = int(n['self'].rpartition('/')[-1])
-        graph.add_node(node_id)
-
-        for k, v in n['data'].items():
-            graph.node[k] = v
+        graph.add_node(node_id, **n['data'])
 
     for n in edge_date['body']['data']:
         from_node_id, relationship, to_node_id = n
