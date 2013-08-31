@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 import json
@@ -5,10 +6,11 @@ import json
 import networkx as nx
 import requests
 
-__all__ = ['write_to_neo']
+__all__ = ['write_to_neo', 'make_graph']
 
 
-JSON_CONTENT_TYPE = 'application/json; charset=UTF-8'
+JSON_CONTENT_TYPE = 'application/json; charset=utf-8'
+HEADERS = {'content-type': JSON_CONTENT_TYPE}
 
 
 def get_node(node_id, properties):
@@ -60,6 +62,26 @@ def generate_data(graph, edge_rel_name, label, encoder):
     return encoder.encode(entities)
 
 
+def check_exception(result):
+    if result.status_code == 200:
+        return
+
+    if result.headers.get('content-type', '').lower() == JSON_CONTENT_TYPE:
+        result_json = result.json()
+        e = Exception(result_json['exception'])
+        e.args += (result_json['stacktrace'], )
+    else:
+        e = Exception("Unknown server error.")
+        e.args += (result.content, )
+    raise e
+
+
+def get_server_urls(server_url):
+    result = requests.get(server_url)
+    check_exception(result)
+    return result.json()
+
+
 def write_to_neo(server_url, graph, edge_rel_name, label=None,
                  encoder=None):
     """Write the `graph` as Geoff string. The edges between the nodes
@@ -100,21 +122,46 @@ See `here <http://bit.ly/1fo5324>`_.
     if encoder is None:
         encoder = json.JSONEncoder()
 
-    all_server_urls = requests.get(server_url).json()
+    all_server_urls = get_server_urls(server_url)
     batch_url = all_server_urls['batch']
 
     data = generate_data(graph, edge_rel_name, label, encoder)
-    headers = {'content-type': JSON_CONTENT_TYPE}
-    result = requests.post(batch_url, data=data, headers=headers)
-
-    if result.status_code != 200:
-        if result.headers.get('content-type') == JSON_CONTENT_TYPE:
-            result_json = result.json()
-            e = Exception(result_json['exception'])
-            e.args += (result_json['stacktrace'], )
-        else:
-            e = Exception("Unknown server error.")
-            e.args += (result.content, )
-        raise e
-
+    result = requests.post(batch_url, data=data, headers=HEADERS)
+    check_exception(result)
     return result.json()
+
+
+LABEL_QRY = """MATCH (a:{0})-[r]->(b:{1}) RETURN ID(a), r, ID(b);"""
+
+
+def get_neo_graph(server_url, label):
+    all_server_urls = get_server_urls(server_url)
+    batch_url = all_server_urls['batch']
+
+    data = [{"method": "GET", "to": '/label/{0}/nodes'.format(label),
+             "body": {}},
+            {"method": "POST", "to": '/cypher', "body": {"query":
+             LABEL_QRY.format(label, label), "params": {}}},
+            ]
+
+    result = requests.post(batch_url, data=json.dumps(data), headers=HEADERS)
+    check_exception(result)
+
+    node_data, edge_date = result.json()
+    graph = nx.DiGraph()
+
+    for n in node_data['body']:
+        node_id = int(n['self'].rpartition('/')[-1])
+        graph.add_node(node_id)
+
+        for k, v in n['data'].items():
+            graph.node[k] = v
+
+    for n in edge_date['body']['data']:
+        from_node_id, relationship, to_node_id = n
+
+        properties = relationship['data']
+        properties['neo_rel_name'] = relationship['type']
+        graph.add_edge(from_node_id, to_node_id, **properties)
+
+    return graph
