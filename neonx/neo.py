@@ -6,7 +6,7 @@ import json
 import networkx as nx
 import requests
 
-__all__ = ['write_to_neo', 'make_graph']
+__all__ = ['write_to_neo', 'get_neo_graph']
 
 
 JSON_CONTENT_TYPE = 'application/json; charset=utf-8'
