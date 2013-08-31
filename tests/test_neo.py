@@ -154,7 +154,7 @@ class TestGetGraph(unittest.TestCase):
 
         graph = get_neo_graph("http://localhost:7474/db/data/", "Node")
 
-        self.assertIsInstance(graph, nx.DiGraph)
+        self.assertTrue(isinstance(graph, nx.DiGraph))
         self.assertEqual(graph.number_of_nodes(), 2)
         self.assertEqual(graph.number_of_edges(), 1)
 
