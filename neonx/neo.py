@@ -135,6 +135,16 @@ LABEL_QRY = """MATCH (a:{0})-[r]->(b:{1}) RETURN ID(a), r, ID(b);"""
 
 
 def get_neo_graph(server_url, label):
+    """Return a graph of all nodes with a given Neo4j label and edges between
+    the same nodes.
+
+    :param server_url: Server URL for the Neo4j server.
+    :param label: The label to retrieve the nodes for.
+    :rtype: A `Digraph \
+<http://networkx.github.io/documentation/latest/\
+reference/classes.digraph.html>`_.
+    """
+
     all_server_urls = get_server_urls(server_url)
     batch_url = all_server_urls['batch']
 
