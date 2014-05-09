@@ -10,6 +10,14 @@ __all__ = ['get_geoff']
 
 
 def get_node(node_name, properties, encoder):
+    """converts a NetworkX node into a Geoff string.
+
+    :param node_name: the ID of a NetworkX node
+    :param properties: a dictionary of node attributes
+    :param encoder: an instance of a JSON encoder (e.g.
+        `json.JSONEncoder`)
+    :rtype: A Geoff string
+    """
     if properties:
         return '({0} {1})'.format(node_name,
                                   encoder.encode(properties))
@@ -18,6 +26,17 @@ def get_node(node_name, properties, encoder):
 
 
 def get_edge(from_node, to_node, properties, edge_relationship_name, encoder):
+    """converts a NetworkX edge into a Geoff string.
+
+    :param from_node: the ID of a NetworkX source node
+    :param to_node: the ID of a NetworkX target node
+    :param properties: a dictionary of edge attributes
+    :param edge_relationship_name: string that describes the
+        relationship between the two nodes
+    :param encoder: an instance of a JSON encoder (e.g.
+        `json.JSONEncoder`)
+    :rtype: A Geoff string
+    """
     edge_string = None
     if properties:
         args = [from_node, edge_relationship_name,
