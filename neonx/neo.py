@@ -121,7 +121,7 @@ def get_server_urls(server_url):
     """connects to the server with a GET request and returns its answer
     (e.g. a number of URLs of REST endpoints, the server version etc.)
     as a dictionary.
-    
+
     :param server_url: the URL of the Neo4j server
     :rtype: a dictionary of parameters of the Neo4j server
     """
