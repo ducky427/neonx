@@ -14,6 +14,12 @@ HEADERS = {'content-type': JSON_CONTENT_TYPE}
 
 
 def get_node(node_id, properties):
+    """reformats a NetworkX node for `generate_data()`.
+
+    :param node_id: the index of a NetworkX node
+    :param properties: a dictionary of node attributes
+    :rtype: a dictionary representing a Neo4j POST request
+    """
     return {"method": "POST",
             "to": "/node",
             "id": node_id,
@@ -21,6 +27,15 @@ def get_node(node_id, properties):
 
 
 def get_relationship(from_id, to_id, rel_name, properties):
+    """reformats a NetworkX edge for `generate_data()`.
+
+    :param from_id: the ID of a NetworkX source node
+    :param to_id: the ID of a NetworkX target node
+    :param rel_name: string that describes the relationship between the
+        two nodes
+    :param properties: a dictionary of edge attributes
+    :rtype: a dictionary representing a Neo4j POST request
+    """
     body = {"to": "{{{0}}}".format(to_id), "type": rel_name,
             "data": properties}
 
@@ -30,12 +45,30 @@ def get_relationship(from_id, to_id, rel_name, properties):
 
 
 def get_label(i, label):
+    """adds a label to the given (Neo4j) node.
+
+    :param i: the index of a NetworkX node
+    :param label: the label to be added to the node
+    :rtype: a dictionary representing a Neo4j POST request
+    """
     return {"method": "POST",
             "to": "{{{0}}}/labels".format(i),
             "body": label}
 
 
 def generate_data(graph, edge_rel_name, label, encoder):
+    """converts a NetworkX graph into a format that can be uploaded to
+    Neo4j using a single HTTP POST request.
+
+    :rtype: a JSON encoded string for `Neo4j batch operations \
+    <http://docs.neo4j.org/chunked/stable/rest-api-batch-ops.html>_`.
+
+    :param graph: A NetworkX Graph or a DiGraph
+    :param edge_rel_name: string that describes the relationship between
+        the two nodes
+    :param label: an optional label to be added to all nodes
+    :param encoder: a JSONEncoder object
+    """
     is_digraph = isinstance(graph, nx.DiGraph)
     entities = []
     nodes = {}
@@ -63,6 +96,14 @@ def generate_data(graph, edge_rel_name, label, encoder):
 
 
 def check_exception(result):
+    """checks, if the preceding HTTP request was accepted by the Neo4j
+    server.
+
+    :param result: a `Response \
+<http://docs.python-requests.org/en/latest/api/#requests.Response>`_
+        instance.
+    :rtype: an Exception or None
+    """
     if result.status_code == 200:
         return
 
@@ -77,6 +118,13 @@ def check_exception(result):
 
 
 def get_server_urls(server_url):
+    """connects to the server with a GET request and returns its answer
+    (e.g. a number of URLs of REST endpoints, the server version etc.)
+    as a dictionary.
+    
+    :param server_url: the URL of the Neo4j server
+    :rtype: a dictionary of parameters of the Neo4j server
+    """
     result = requests.get(server_url)
     check_exception(result)
     return result.json()
